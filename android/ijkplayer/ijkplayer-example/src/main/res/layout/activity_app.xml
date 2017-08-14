@@ -1,0 +1,52 @@
+<!--
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".activities.FileExplorerActivity"
+	>
+  
+    <include layout="@layout/widget_toolbar" />
+
+    <FrameLayout
+        android:id="@+id/body"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+	 
+</LinearLayout> 
+--> 
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" 
+	> 
+    
+    <include layout="@layout/widget_toolbar" />
+	<EditText
+		android:id="@+id/url"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:text="rtmp://218.38.152.69/da_live/72136989/mp4:ch001"
+		/> 
+	<Button
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:text="Play(P2P)"
+		android:id="@+id/playp2p"
+		/>
+	<Button
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:text="Play"
+		android:id="@+id/play"
+		/>
+    <FrameLayout
+        android:visibility="gone"
+        android:id="@+id/body"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+		/>
+	 
+</LinearLayout>
