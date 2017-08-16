@@ -9,8 +9,20 @@ pkplayer是一个P2P播放器，支持Android、IOS平台。
 最后本程序作者不承担使用该程序所带来的任何问题并拥有一切解释权.
 
 QQ技术交流群: 466907566
- 
+
+
+
 ### Build Android
+
+windows编译
+ffmpeg静态库已编译好放置在jniLibs目录下，直接编译ijkplayer-example项目即可。
+运行前需设置ANDROID_SDK环境变量ANDROID_HOME，及安装Java。
+
+cd e:\pkplayer-master\android\ijkplayer
+gradlew build
+
+
+Linux编译
 ```
 git clone https://github.com/SeaHaige/pkplayer.git pkplayer-android
 cd pkplayer-android
