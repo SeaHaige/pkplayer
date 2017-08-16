@@ -15,6 +15,7 @@ QQ技术交流群: 466907566
 ### Build Android
 
 windows编译
+
 ffmpeg静态库已编译好放置在jniLibs目录下，直接编译ijkplayer-example项目即可。
 运行前需设置ANDROID_SDK环境变量ANDROID_HOME，及安装Java。
 
