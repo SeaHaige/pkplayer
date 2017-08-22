@@ -17,5 +17,5 @@
 #import <UIKit/UIKit.h>
 
 @interface IJKDemoInputURLViewController : UIViewController
-
+@property (nonatomic,strong) NSMutableData *data;
 @end
