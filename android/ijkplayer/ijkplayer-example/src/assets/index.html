@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>PPeasy M3U8</title>
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+    <link rel="stylesheet" href="msui/css/sm.css">
+    <link rel="stylesheet" href="msui/css/sm-extend.css">
+<style>
+div.content-block{
+	margin:0px;
+	padding:0px;
+}
+div.list-block{
+	margin:0px;
+}
+</style>
+<script>  
+
+pc_flag=0;
+use_h5video=0;	
+use_p2p="1"; 
+iosf=0;
+desthost="127.0.0.1";
+if(window.location.href.indexOf("?")>=0){
+	desthost=window.location.href.split("?")[1];
+}
+player_type="videoview"; 
+ 
+if( navigator.userAgent.toLowerCase().indexOf("windows nt")>=0)
+{ 
+	pc_flag=1;
+}
+if (navigator.userAgent.indexOf("iPhone OS")>=0
+	|| navigator.userAgent.indexOf("CPU OS")>=0)
+	iosf=1;
+else
+if( navigator.userAgent.indexOf("Mac OS X")>=0)
+{ 
+	pc_flag=2;
+}
+//desthost="192.168.128.128";
+//desthost="192.168.1.113";
+function getCookie(name)
+{ 
+	var arr,reg=new RegExp("(^| )"+name+"=([^;]*)(;|$)");
+	if(arr=document.cookie.match(reg))
+	return unescape(arr[2]);
+	else
+	return null; 
+} 
+function setCookie(c_name, value){ 
+　　　　var exdate=new Date();
+　　　　exdate.setDate(exdate.getDate() + 360);
+　　　　document.cookie=c_name+ "=" + escape(value) + ((360==null) ? "" : ";expires="+exdate.toGMTString());
+		if (typeof window.control!="undefined")
+		window.control.save("use_p2p='"+use_p2p+"';player_type='"+player_type+"';saveplaylist='"+JSON.stringify(playlist)+"';"); 
+}  
+
+saveplaylist=getCookie("playlist");
+use_p2p=getCookie("use_p2p");
+player_type=getCookie("player_type");
+
+if (typeof window.control!="undefined")
+{
+	//alert(window.control.load());
+	
+	eval(window.control.load());
+} 
+
+if(use_p2p==null) use_p2p="1"; 
+if(player_type==null) player_type="videoview"; 
+ 
+
+port=0;
+showLoaderf=0;
+function hideLoader(){
+	if(showLoaderf)
+	$.hidePreloader();
+	showLoaderf=0;
+}
+var playlist={
+	"name":[ 
+		"HKS-rtmp",
+		"HKS-flv",
+		"CCTV-1",		"CCTV-2",		"CCTV-3",
+		"CCTV-4",		"CCTV-7",		"CCTV-8",
+		"CCTV-10",		"CCTV-12",		"CCTV-13",
+		"CCTV-14",		"CCTV-15"
+	],
+	"list":[ 
+		"rtmp://live.hkstv.hk.lxdns.com/live/hks",
+		"http://fms.cntv.lxdns.com/live/flv/channel84.flv",
+		"http://223.110.243.138/PLTV/2510088/224/3221227177/1.m3u8",
+		"http://223.110.243.136/PLTV/2510088/224/3221227199/1.m3u8",
+		"http://223.110.243.136/PLTV/3/224/3221227206/index.m3u8",
+		"http://223.110.243.138/PLTV/2510088/224/3221227162/1.m3u8",
+		"http://223.110.243.136/PLTV/2510088/224/3221227142/1.m3u8",
+		"http://223.110.245.167/ott.js.chinamobile.com/PLTV/3/224/3221227204/index.m3u8",
+		"http://223.110.243.140/PLTV/2510088/224/3221227161/1.m3u8",
+		"http://223.110.243.140/PLTV/2510088/224/3221227171/1.m3u8",
+		"http://223.110.243.150/PLTV/3/224/3221225560/index.m3u8",
+		"http://223.110.243.140/PLTV/2510088/224/3221227247/1.m3u8",
+		"http://183.207.249.7/PLTV/3/224/3221225568/index.m3u8"		
+	]
+};	 
+//if(saveplaylist!=null) playlist=JSON.parse(saveplaylist);
+//setCookie("playlist",JSON.stringify(playlist));	
+newaddr=null;
+channelname="";
+function playvideo(devno, fid){ 	
+	if(editurlf) return;
+	channelname=devno;
+	for(  k=0;k<playlist.name.length;k++)
+		if(playlist.name[k]==devno)
+		{ 
+			devno=playlist.list[k];
+		}
+
+	console.log(devno);
+	var act="CreateRtmpService";   
+	if(devno.substr(0,4)=="http"){
+		playtype=devno;
+		if(devno.indexOf("?")>0) playtype=devno.split("?")[0];
+		if(playtype.substring(playtype.length-4)==".flv")
+		act="CreateHttpFlvService";
+		else
+		if(playtype.substring(playtype.length-4)==".mp4")
+		act="CreateVideoService";
+		else
+		act="CreateHlsService"; 
+	}		
+	if(use_p2p=="0"){   
+	
+		if(pc_flag)
+		{ 
+			if(player_type=="html5")
+			{
+				//$("video")[0].src=devno; 
+				//$("video")[0].play();  
+				$("iframe")[0].src="flv1.html?"+devno;  
+			}
+			else
+			if(player_type=="download"){  
+					$.ajax({
+						 type: "GET",
+						 url: "http://"+desthost+":1960/?Action=DownloadM3u8&Port="+port+"&Url="+devno,
+						 data: "",
+						 timeout:100,  		
+						 async:false, 	 
+						 dataType: "json"
+						 });
+			}
+			else
+			if(player_type=="remoteplay"){ 
+					$.ajax({
+						 type: "GET",
+						 url: "http://"+desthost+":1960/?Action=AddPlayUrl&Url="+devno,
+						 data: "",
+						 timeout:100,  		
+						 async:false, 	 
+						 dataType: "json"
+						 });
+			}
+			else
+			if(act=="CreateRtmpService")
+			{ 
+				$("iframe")[0].src="/playswf.html?"+devno;  
+			}
+			else
+				$("iframe")[0].src="/hls/?"+devno;  
+		}else 
+		if(player_type=="html5"){ 
+			$("video")[0].src=devno;
+			$("video")[0].play();  
+		}else{
+			if(iosf){
+				PlayPath(devno,channelname) ;	
+			}
+			else
+			window.control.PlayPath(devno,channelname) ;	
+		}
+		$(".urllabel")[0].innerHTML=devno;
+		return ;
+	}
+		 
+	var host=devno.substr(7).split("/")[0]; 
+	var sucf=1;
+	if(port)
+	{
+		sucf=0;
+		for(var i=0;i<10 && !sucf;i++)
+		{
+			$.ajax({
+				 type: "GET",
+				 url: "http://"+desthost+":1960/Close?Port="+port,
+				 data: "",
+				 timeout:100,  			 
+				 dataType: "json",
+				 async:false, 
+				 success: function(data){  
+					if(data.result)
+						sucf=1;
+				 }
+				 }); 
+		}
+		if(!sucf){
+			alert("close error");
+		}else port=0;
+	}
+			  
+	//$.showPreloader();	
+	//showLoaderf=1;
+	$.ajax({
+             type: "GET",
+             url: "http://"+desthost+":1960/?Action="+act+"&Domain="+host,
+             data: "",
+			 timeout:100,  		
+			 async:false, 	 
+             dataType: "json",
+			 error:function(jqXHR, textStatus, errorThrown){
+				if(showLoaderf)
+				{
+					showLoaderf=0;
+					$.hidePreloader();		
+					$.alert('播放失败！');			
+				}
+				if(textStatus=="timeout"){  
+				}else{				  
+				}
+			},
+             success: function(data){ 
+	  
+						$(".urllabel")[0].innerHTML=devno;
+						port=data.port;
+						newaddr=""+desthost+":"+port+devno.substr(7+host.length);  
+					 
+						if(pc_flag){ 
+							if(player_type=="download"){
+								$.ajax({
+									 type: "GET",
+									 url: "http://"+desthost+":1960/?Action=DownloadM3u8&Port="+port+"&Url="+devno,
+									 data: "",
+									 timeout:100,  		
+									 async:false, 	 
+									 dataType: "json"
+									 });
+							}else
+							if(player_type=="remoteplay"){
+								$.ajax({
+									 type: "GET",
+									 url: "http://"+desthost+":1960/?Action=AddPlayUrl&Url=http://"+newaddr,
+									 data: "",
+									 timeout:100,  		
+									 async:false, 	 
+									 dataType: "json"
+									 });
+							}
+							else
+							if(act=="CreateHttpFlvService"){ 
+								$("iframe")[0].src="flv1.html?"+"http://"+newaddr;  
+							}
+							else
+							if(act=="CreateRtmpService")
+							{ 
+								$("iframe")[0].src="/playswf.html?rtmp://"+newaddr;  
+							}
+							else
+								$("iframe")[0].src="/hls/?http://"+newaddr; 
+						}else
+						if(player_type=="download"){ 
+							$.ajax({
+								 type: "GET",
+								 url: "http://"+desthost+":1960/?Action=DownloadM3u8&Port="+port+"&Url="+devno,
+								 data: "",
+								 timeout:100,  		
+								 async:false, 	 
+								 dataType: "json"
+								 });
+								 
+						}
+						else
+						if(player_type=="html5"){    
+							$("video")[0].src="http://"+newaddr;
+							$("video")[0].play(); 
+						}else				
+						{
+							if(iosf){
+								if(act=="CreateRtmpService")
+								 PlayPath("rtmp://"+newaddr , channelname) ;			
+								else
+								 PlayPath("http://"+newaddr , channelname) ;	 
+							}
+							else
+							{
+								if(act=="CreateRtmpService")
+								window.control.PlayPath("rtmp://"+newaddr , channelname) ;			
+								else
+								window.control.PlayPath("http://"+newaddr , channelname) ;	
+							}
+						} 
+                      }
+         });
+} 
+		
+nullcnt=0;		
+function getstatus(){
+	 
+	if($("a.active.tab-link")[0].href.split("#")[1]=="tab2"
+		|| $("a.active.tab-link")[0].href.split("#")[1]=="tab3"){	
+	if(false)
+	if(nullcnt>60){
+		nullcnt=0;
+		if(pc_flag){ 
+			if(player_type=="download"){ 
+			}else
+			if(player_type=="remoteplay"){ 
+			}
+			else
+			if(player_type=="html5"){ 
+				$("iframe")[0].src="flv1.html?"+"http://"+newaddr;  
+			}
+			else
+				$("iframe")[0].src="/hls/?http://"+newaddr; 
+		}else
+		if(player_type=="download"){   
+		}
+		else
+		if(player_type=="html5"){    
+			$("video")[0].pause(); 
+			$("video")[0].src="http://"+newaddr;
+			$("video")[0].play(); 
+		}else				
+		{						 
+			if(iosf){
+				PlayPath("http://"+newaddr , channelname) ;		
+			}
+			else
+				window.control.PlayPath("http://"+newaddr , channelname) ;			
+		} 
+		console.log("reopen:"+newaddr);
+	}
+	$.ajax({
+             type: "GET",
+             url: "http://"+desthost+":1960/info?",
+             data: "",
+			 timeout:10000,  			 
+             dataType: "json",
+			 error:function(jqXHR, textStatus, errorThrown){
+				if(textStatus=="timeout"){
+					alert("none!");				  
+				}else{				  
+				}
+			},
+			 success: function(data){  
+						if(data.p2p.rateserver+data.p2p.ratep2p==0 && port!=0){
+							console.log("set null++"+nullcnt);
+							nullcnt++;
+						}else nullcnt=0;
+						$(".sharelabel")[0].innerHTML=data.p2p.share+"%";
+						$(".ratelabel")[0].innerHTML=(data.p2p.rateserver+data.p2p.ratep2p)+"KB/s";
+						$(".ratelabel")[1].innerHTML=data.p2p.ratep2p+"KB/s";
+						$(".ratelabel")[2].innerHTML=data.p2p.rateupload+"KB/s";
+						$(".ratelabel")[3].innerHTML=((data.p2p.users.length-1)>=0)?((data.p2p.users.length-1)):0;
+						if(data.p2p.net_type==1)
+						$(".ratelabel")[4].innerHTML="cone";
+						if(data.p2p.net_type==2)
+						$(".ratelabel")[4].innerHTML="sym.1";
+						if(data.p2p.net_type==3)
+						$(".ratelabel")[4].innerHTML="sym";
+						if(data.p2p.net_type==6)
+						$(".ratelabel")[4].innerHTML="unlimit";
+						if(data.p2p.net_type==7)
+						$(".ratelabel")[4].innerHTML="sym.2";
+						$(".playlabel")[0].innerHTML=data.play.error+"";
+						   
+						while($("#users li").length-1<data.p2p.users.length-1){
+							listinsert("#users","");
+						}
+						
+						while($("#users li").length-1>data.p2p.users.length-1)
+							$("#users li:last-child").remove();
+						 for(var k=1;k<data.p2p.users.length;k++){
+							$("#users li .item-title")[k].innerHTML=data.p2p.users[k].ip;
+							{ 
+							var pingv=data.p2p.users[k].ping;
+							if(pingv>10000) pingv=-1;
+							$("#users li .item-after")[k].innerHTML="&#8593;"+data.p2p.users[k].r1+",&#8595;"+data.p2p.users[k].r2+"&#8660;"+pingv;
+							}
+						}
+                      }
+			 }); 
+	}
+}	
+			
+function onbeforeunload(){
+	if(0)
+	if(port)
+	$.ajax({
+             type: "GET",
+             url: "http://"+desthost+":1960/Close?Port="+port,
+             data: "",
+			 timeout:10000,  			 
+             dataType: "json"
+			 }); 
+	 
+} 	
+function set_player_window(){ 
+	if(pc_flag){
+		/*
+		if(player_type=="html5")
+		{
+			$("video").css("display","block");
+			$("video").css("height","610px");
+			$("iframe")[0].style.height="0px";
+			$("iframe :first-child").css("display","none");
+		}
+		else
+		*/
+		{
+			$("iframe")[0].style.display="block";
+			$("iframe")[0].style.height="610px";
+			$("video").css("height","0px");
+			$("video").css("display","none");
+		}
+		$("#tabdiv").css("margin-left","600px");
+		return;
+	}
+	if(player_type=="html5")
+	{  
+		$("video").css("display","block");
+		$("video").css("height",(document.body.clientWidth*9/16)+"px");
+		$("#tabdiv").css("margin-top",(document.body.clientWidth*9/16)+"px");
+		if (typeof window.control!="undefined")
+		window.control.hideVideo();  
+	}
+	if(player_type=="videoview")
+	{  
+		$("video").css("display","none"); 		
+		$("video").css("height","0px");
+		$("#tabdiv").css("margin-top","0px");
+		if (typeof window.control!="undefined")
+		window.control.showVideo();  
+	}
+}	  
+function load(){	  
+	//share("1","2","3");
+	if(!pc_flag){
+		if(player_type=="html5")
+		set_player_window();
+	} 	
+	if(pc_flag){ 		
+		set_player_window();
+	} 
+	
+	setInterval("getstatus()",1000);
+	
+	$("#play_type")[0].value=use_p2p;
+	$("#player_type")[0].value=player_type;
+	for(k=0;k<playlist.list.length;k++)		insertItem(playlist.name[k],playlist.list[k]);
+	  
+} 
+function play(){ 
+//var video01 = document.getElementById("video01");    video01.play(); 
+} 
+function listset(list,value){
+} 
+function listinsert(list,value){
+	var node=$(list+" li:first-child")[0];
+	var cloned ;
+	cloned = node.cloneNode(true);
+	cloned.style.display="";   
+	node.parentNode.insertAdjacentElement("beforeEnd",cloned); 
+	$(list+" li:last-child .item-title")[0].innerHTML=value;
+}
+function insertItem(name,url){
+	var node=$("#m3u8 li:first-child")[0];
+	var cloned ;
+	cloned = node.cloneNode(true);
+	cloned.style.display="";   
+	node.parentNode.insertAdjacentElement("beforeEnd",cloned); 
+	$("#m3u8 li:last-child .item-title")[0].innerHTML=name;
+	//$("#m3u8 li:last-child .item-after")[0].innerHTML=url;
+}
+function openurl(){
+	$("#adddiv").css("display","none");	
+	if(modifyid>=0){
+		k=modifyid;
+		playlist.name[k]=($("#channel")[0].value);
+		playlist.list[k]=($("#search")[0].value); 
+		$("#m3u8 li .item-title")[k+1].innerHTML=playlist.name[k];
+		setCookie("playlist",JSON.stringify(playlist));		
+		return;
+	}
+	var oldlen=playlist.list.length;
+	//playvideo($("#search")[0].value,0);
+	{
+		devno=$("#channel")[0].value;
+		var findf=0;
+		for(var k=0;k<playlist.name.length;k++)
+			if(playlist.name[k]==devno) 
+			{
+				findf=1;
+				playlist.name[k]=($("#channel")[0].value);
+				playlist.list[k]=($("#search")[0].value); 
+			}
+		if(!findf)
+		{
+			playlist.name.push($("#channel")[0].value);
+			playlist.list.push($("#search")[0].value); 
+			insertItem($("#channel")[0].value);
+			setCookie("playlist",JSON.stringify(playlist));			
+		}
+	} 
+}
+function clearurl(){
+	var node=$("#m3u8 li:first-child")[0];
+	var node2=node.parentNode;
+	var cloned=node.cloneNode(true);
+	$("#m3u8 li").remove();
+	node2.insertAdjacentElement("beforeEnd",cloned); 
+	while(playlist.list.length)
+	playlist.list.splice(0, 1);
+	setCookie("playlist",JSON.stringify(playlist));
+}
+pcport=0;
+function playpc( devno){
+	
+	var sucf=1;
+	if(pcport)
+	{
+		sucf=0;
+		$.ajax({
+				 type: "GET",
+				 url: "http://"+desthost+":1960/Close?Port="+pcport,
+				 data: "",
+				 async:false,
+				 timeout:10000,  			 
+				 dataType: "json",
+				 success: function(data){ 
+					sucf=1;
+				 }
+				 }); 
+	}
+	if(!sucf) return;
+	fid=0;
+	var host=devno.substr(7).split("/")[0]; 	
+	var act="CreateRtmpService"; 
+	if(devno.substr(0,4)=="http")
+		act="CreateHlsService";
+	$.ajax({
+             type: "GET",
+             url: "http://"+desthost+":1960/?Action="+act+"&Domain="+host,
+             data: "",
+			 timeout:1000,  			 
+             dataType: "json",
+			 error:function(jqXHR, textStatus, errorThrown){
+				if(textStatus=="timeout"){
+					alert("未检测到PPeasy服务，请安装PPeasy管理助手软件并启动服务!");				  
+				}else{				  
+				}
+			},
+             success: function(data){ 
+						port=data.port; 
+						pcport=port;
+						var newaddr=""+desthost+":"+port+devno.substr(7+host.length); 
+						if(act=="CreateRtmpService")
+							$("iframe")[fid].src="/playswf.html?rtmp://"+newaddr; 
+						else
+							$("iframe")[fid].src="/hls/?http://"+newaddr; 
+                      }
+         });
+}
+function upgrade(){
+	//window.control.upgrade("http://192.168.199.141/m3u8/libppeasy.so");
+	window.control.upgrade("http://192.168.1.34/m3u8/libppeasy.so");
+	//window.control.upgrade("http://101.201.104.27/m3u8/libppeasy.so");
+}
+function change_play_type(str){
+	use_p2p=str; 
+	setCookie("use_p2p",use_p2p);
+}
+function change_player_type(str){ 
+	player_type=str;
+	set_player_window();
+	setCookie("player_type",player_type);
+}
+function change_p2p_bandwidth(value){
+	$.ajax({
+			 type: "GET",
+			 url: "http://"+desthost+":1960/Limit?rate="+value,
+			 data: "",
+			 async:false,
+			 timeout:10000,  			 
+			 dataType: "json",
+			 success: function(data){ 
+				$.alert("设置成功！");
+			 }
+			 }); 
+}
+function editurl(){
+	$("#m3u8 .item-after").css("display","block");
+	editurlf=1;
+}
+function addurl(){
+	modifyid=-1;
+	$("#adddiv").css("display","block");
+	maxchannel=1;
+	for(k=0;k<playlist.name.length;k++){
+		if(playlist.name[k].substring(0,2)=="频道"){
+			channelid=parseInt(playlist.name[k].substring(2));
+			if(channelid>maxchannel) maxchannel=channelid;
+		}
+	}
+	maxchannel++;
+	$("#channel")[0].value="频道"+maxchannel;
+	$("#search")[0].value="";
+	$("#m3u8 .item-after").css("display","block");
+	editurlf=1;
+}
+function canceledit(){
+	$("#adddiv").css("display","none");
+	$("#m3u8 .item-after").css("display","none");
+	editurlf=0;
+}
+function editelement(obj){
+	str=obj.childNodes[1].innerHTML;
+	$("#channel")[0].value=str;
+	$("#search")[0].value="";
+	for(k=0;k<playlist.name.length;k++){
+		if(playlist.name[k] ==str){ 
+			$("#search")[0].value=playlist.list[k];
+			
+			modifyid=k;
+		}
+	}
+	$("#adddiv").css("display","block"); 
+}
+function deleteurl(obj){ 
+	str=obj.childNodes[1].innerHTML;
+	obj.parentNode.parentNode.removeChild(obj.parentNode);
+	var strid=playlist.name.indexOf(str);	 
+	if(strid<0)
+	{
+		return;
+	}	 
+	//for(k=0;k<playlist.list.length;k++)		insertItem(playlist.name[k],playlist.list[k]);
+	playlist.name.splice(strid,1); 
+	playlist.list.splice(strid,1); 
+	setCookie("playlist",JSON.stringify(playlist));	
+}
+editurlf=0;
+function jumpurl(){
+	
+	$.prompt('确定要跳转?', function (value) {
+			if(value=="") value="http://101.201.104.27/m3u8/";
+			$.alert('to:' + value + '');
+			window.location.href=value;
+		  });
+}
+</script>
+
+</head>
+<body onload=' load();' onbeforeunload="onbeforeunload()" >
+ 
+    <div class="page-group">
+        <div class="page page-current">
+ 
+<div style="background-image:url(black.png);width:100%;">
+<video id="myVideo" style="display:none;width:100%;height:0px" webkit-playsinline='true' playsinline='true' autoplay=autoplay poster="black.png">
+<!--
+<source src="http://live.hkstv.hk.lxdns.com/live/hks/playlist.m3u8?wsSession=b9390cd5432cd8efc4e79106-152219735925501&wsIPSercert=4437b29a9fdb1072a3cb033f8107d00e&wsMonitor=-1">
+-->
+</video>
+</div>
+<iframe style="display:none;width:600px;height:230px;" ></iframe>
+<div id="tabdiv" class="content native-scroll" style="margin-top:0px;">
+
+  <div class="buttons-tab">
+    <a href="#tab1" class="tab-link active button">播放列表</a>
+    <a href="#tab2" class="tab-link button">播放状态</a>
+    <a href="#tab3" class="tab-link button">P2P状态</a>
+    <a href="#tab4" class="tab-link button">设置</a>
+  </div>
+  <div class="content-block">
+    <div class="tabs">
+      <div id="tab1" class="tab active ">
+        <div class="content-block" >
+		<div > 
+		<div  class=row  style="margin-top:10px;"><label class="col-50">M3U8播放列表</label>
+		</div>
+	 
+			<div class="list-block" style="">
+
+			<ul id="m3u8">
+			<li class="item-content item-link" style="display:none">
+
+			<div class="item-inner row" onclick="playvideo(this.childNodes[1].innerHTML,0)" >
+			<div class="item-title col-80"></div> 
+			<div class="item-after col-20" style="display:none"> 
+			<a href="javascript:void(0)" onclick="editelement(this.parentNode.parentNode)">修改</a>
+			<a href="javascript:void(0)" onclick="deleteurl(this.parentNode.parentNode)">删除</a>
+			</div>
+			</div>
+			</li> 
+			</ul>
+		 
+			
+		 
+			</div> 
+		<div class=row id="adddiv" style="margin-top:10px;display:none;">    <div class="search-input col-20">
+      <input type="text" id='channel' />
+    </div><div class="search-input col-60">
+      <input type="text" id='search' placeholder='输入要打开的网址...'/>
+    </div>
+    <a class="button button-fill button-primary col-20" href="javascript:openurl()">确定</a></div>
+			<div class=row style="margin-top:10px;">
+			<a class="button button-fill button-primary col-20" href="javascript:addurl()">添加</a>
+			<a class="button button-fill button-primary col-20" href="javascript:editurl()">编辑</a>
+			<a class="button button-fill button-primary col-20" href="javascript:canceledit()">取消</a>
+			<a class="button button-fill button-primary col-20" href="javascript:window.location.reload()">刷新</a>
+			<!--<a class="button button-fill button-primary col-20" href="javascript:clearurl()">清空</a> -->
+			</div> 
+      </div>
+	  </div>
+	  </div>
+      <div id="tab2" class="tab">
+        <div class="content-block"> 
+			 
+          <p>播放地址：<label class="urllabel" onclick="$('#smallvideo')[0].src=this.innerHTML;$('#smallvideo')[0].style.width='100px';$('#smallvideo')[0].style.height='60px';$('#smallvideo')[0].play();$('#smallvideo')[0].muted=true;"></label></p>
+          <p>播放速率：<label class="ratelabel"></label></p>
+          <p style="display:none">P2P下载：<label class="ratelabel"></label></p>
+          <p style="display:none">P2P上传：<label class="ratelabel" ></label></p>
+          <p>P2P连接：<label class="ratelabel"></label></p>
+          <p>P2P共享率：<label class="sharelabel"></label></p>
+          <p>网络类型：<label class="ratelabel"></label></p>
+          <p>重连次数：<label class="playlabel"></label></p>
+		  <video id=smallvideo style="display:none;width:0px;height:0px;"></video> 
+        </div>
+      </div>
+      <div id="tab3" class="tab">
+        <div class="content-block">
+          <div  style="margin-top:10px;">用户列表</div>
+			  <div class="list-block">
+				<ul id="users">
+				  <li class="item-content  " style="display:none">
+					<div class="item-inner" >
+					  <div class="item-title">127.0.0.1</div>
+						<div class="item-after">38,&#8595;12</div>
+					</div>
+				  </li>  
+				</ul>
+			  </div>
+        </div>
+      </div>
+      <div id="tab4" class="tab">
+        <div class="content-block">
+		
+  <div class="list-block">
+    <ul> 
+      <li>
+			<div class="item-content">
+			  <div class="item-media"><i class="icon icon-form-gender"></i></div>
+			  <div class="item-inner">
+				<div class="item-title label">播放方式</div>
+				<div class="item-input">
+				  <select id="play_type"  onchange="change_play_type(this.value)">
+					<option value="1">P2P</option>
+					<option value="0">direct</option>
+				  </select>
+				</div>
+			  </div>
+			</div>
+	</li>
+      <li>
+			<div class="item-content">
+			  <div class="item-media"><i class="icon icon-form-gender"></i></div>
+			  <div class="item-inner">
+				<div class="item-title label">播放器</div>
+				<div class="item-input">
+				  <select id="player_type"  onchange="change_player_type(this.value)">
+					<option value="videoview">videoview</option>
+					<option value="html5">html5 video</option>
+					<option value="download">download</option>
+					<option value="remoteplay">remoteplay</option>
+				  </select>
+				</div>
+			  </div>
+			</div>
+	</li>
+      <li>
+			<div class="item-content">
+			  <div class="item-media"><i class="icon icon-form-gender"></i></div>
+			  <div class="item-inner">
+				<div class="item-title label">上传带宽</div>
+				<div class="item-input">
+				  <select id="player_type"  onchange="change_p2p_bandwidth(this.value)">
+					<option value="0">不限速</option> 
+					<option value="-1">禁止上传</option> 
+					<option value="1">1Mb</option> 
+					<option value="2">2Mb</option> 
+					<option value="3">3Mb</option>  
+					<option value="5">5Mb</option> 
+					<option value="10">10Mb</option>  
+					<option value="50">50Mb</option> 
+					<option value="100">100Mb</option> 
+				  </select>
+				</div>
+			  </div>
+			</div>
+	</li>
+      <li>
+			<div class="item-content">
+	  <a class="button button-fill button-primary col-20" href="javascript:jumpurl()">跳转</a>
+			</div>
+	</li>
+	
+	</ul></div>
+			
+			
+        </div>
+      </div>
+	  
+    </div>
+  </div>
+</div>
+        </div>
+    </div>
+
+
+    <script type='text/javascript' src='zepto.min.js' charset='utf-8'></script>
+    <script type='text/javascript' src='msui/js/sm.min.js' charset='utf-8'></script>
+    <script type='text/javascript' src='msui/js/sm-extend.min.js' charset='utf-8'></script>
+
+  </body>
+</html>

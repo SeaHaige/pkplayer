@@ -17,6 +17,8 @@
 
 package tv.danmaku.ijk.media.example.application;
 
+import android.util.Log;    
+
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.pm.PackageManager;
@@ -53,50 +55,41 @@ import org.json.JSONObject;
 import android.widget.Toast;
 import android.os.Handler;
 import android.os.Message;
+
+import android.webkit.WebChromeClient;  
+import android.webkit.WebSettings;  
+import android.webkit.WebView;  
+import android.webkit.WebViewClient;  
+import android.webkit.JavascriptInterface;
+import java.io.*;
+import android.webkit.ValueCallback;
+import android.os.Handler;   
+import tv.danmaku.ijk.media.example.widget.media.IjkVideoView;
+import tv.danmaku.ijk.media.player.IMediaPlayer;
+import tv.danmaku.ijk.media.player.IjkMediaPlayer;
+import android.net.Uri;
+
 @SuppressLint("Registered")
-public class AppActivity extends AppCompatActivity implements OnClickListener{
-    private static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 1;
-	private Button btnPlayP2P;
-	private Button btnPlay;
-	static private EditText url;
-	
+public class AppActivity extends AppCompatActivity {
+    private static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 1; 
+    private WebView webView;  
+    private IjkVideoView videoview; 
 	static {  
 		System.loadLibrary("ppeasy");
-	}
-	Handler handler=new Handler(){
-		public void handleMessage(Message msg){
-			String desturl=url.getText().toString();			 
-			VideoActivity.intentTo(AppActivity.this, "rtmp://127.0.0.1:"+msg.obj+desturl.substring(desturl.indexOf('/',7)),"rtmp");
-			
-			//直接播放rtmp地址
-			//VideoActivity.intentTo(AppActivity.this,desturl,"rtmp");  
-		}
-	}; 
+	} 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_app);
-		btnPlayP2P=(Button)findViewById(R.id.playp2p);
-		btnPlayP2P.setOnClickListener(this);
 		
-		btnPlay=(Button)findViewById(R.id.play);
-		btnPlay.setOnClickListener(this);
-		url=(EditText)findViewById(R.id.url);
-		try {
-			File file = new File("/sdcard","url.txt");  
-			if(file.exists()){
-				 FileInputStream is = new FileInputStream(file); 
-				 byte[] b = new byte[is.available()];  
-				 is.read(b); 
-				 String result = new String(b); 
-				 url.setText(result);  
-			}
-		} catch (Exception e) {  
-			e.printStackTrace();  
-		}   
+        videoview = (IjkVideoView) findViewById(R.id.video_view2);  
+        int width = videoview.getContext().getResources().getDisplayMetrics().widthPixels;  
+        LinearLayout.LayoutParams linearParams = (LinearLayout.LayoutParams) videoview.getLayoutParams();  
+        linearParams.height = width*9/16;  
+        videoview.setLayoutParams(linearParams); 
 		  
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        //Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        //setSupportActionBar(toolbar);
     
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.READ_EXTERNAL_STORAGE)
@@ -110,61 +103,9 @@ public class AppActivity extends AppCompatActivity implements OnClickListener{
                         MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
             }
         }
+		init();
     }  
-	@Override 
-	public void onClick(View v){  
-	switch (v.getId()) {      
-	case R.id.playp2p:
-		new Thread() { 
-			public void run() { 
-				int port=0;
-				StringBuffer buffer = new StringBuffer(); 
-				InputStream inputStream=null; 
-				String desturl=url.getText().toString();
-				String destdomain=desturl.substring(7,desturl.indexOf('/',7)); 
-				try {  
-					URL url = new URL("http://127.0.0.1:1960/?Action=CreateRtmpService&Domain="+destdomain);  
-					HttpURLConnection httpUrlConn = (HttpURLConnection) url.openConnection(); 
-					     
-					httpUrlConn.setDoInput(true);  
-					httpUrlConn.setUseCaches(false);   
-					httpUrlConn.setRequestMethod("GET");   
-					httpUrlConn.connect();    
-					inputStream = httpUrlConn.getInputStream();  
-					InputStreamReader inputStreamReader = new InputStreamReader(inputStream, "utf-8");
-					BufferedReader bufferedReader = new BufferedReader(inputStreamReader); 
- 
-					String str = null;    
-					while ((str = bufferedReader.readLine()) != null) {    
-						buffer.append(str);    
-					}   
-					bufferedReader.close();    
-					inputStreamReader.close();
-					inputStream.close();    
-					inputStream = null;    
-					httpUrlConn.disconnect();  
-					JSONObject jsonObject = new JSONObject(buffer.toString());   
-					 
-					port=jsonObject.optInt("port");  
-				}catch (Exception e) {            
-				}finally{  
-				}   
-				if(port!=0){
-					Message msg=new Message();
-					msg.what=1;
-					msg.obj=port;
-					handler.sendMessage(msg);
-				}
-			}
-		}.start(); 
-		break;
-	case  R.id.play:
-			String desturl=url.getText().toString();
-			VideoActivity.intentTo(this,desturl,"rtmp");  			
-		break;
-	}
-		//
-	}
+	 
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
@@ -211,4 +152,147 @@ public class AppActivity extends AppCompatActivity implements OnClickListener{
 
         return true;
     }
+    static String fileName="ppeasy.cfg";
+    private String ReadFile() {
+        FileInputStream inputStream;
+        byte[] buffer = null;
+        try {
+            inputStream = this.openFileInput(fileName);
+            try { 
+                int fileLen = inputStream.available(); 
+                buffer = new byte[fileLen];
+                inputStream.read(buffer);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } 
+        if (buffer != null)
+            return new String(buffer);//EncodingUtils.getString(buffer, "utf-8");
+        else
+            return "";
+
+    } 
+    private void WriteFile(String message) {
+        try { 
+            FileOutputStream outStream = this.openFileOutput(fileName,
+                    MODE_PRIVATE); 
+            byte[] data = message.getBytes();
+            try { 
+                outStream.write(data);
+                outStream.flush();
+                outStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+	public class JsInteration {
+ 
+		@JavascriptInterface
+        public void save(String value){
+            WriteFile(value);
+        }
+		@JavascriptInterface
+        public String load(){
+            return ReadFile();  
+        } 
+		@JavascriptInterface
+		public void showVideo() { 
+            Message msg = new Message();
+            msg.what=1; 
+            msg.arg1=1;
+            mHandler.sendMessage(msg); 
+		}
+		@JavascriptInterface
+		public void hideVideo() { 
+            Message msg = new Message();
+            msg.what=1; 
+            msg.arg1=0;
+            mHandler.sendMessage(msg); 
+		}
+		@JavascriptInterface
+		public void PlayPath(String playurl,String name) { 
+            Log.d("ppeasy","info playpath...");
+			
+			Message msg = new Message();
+			msg.what=0;
+			msg.obj =playurl; 
+			mHandler.sendMessage(msg);
+			
+			/*
+            channelname=name;
+            retry=0;
+            if(url!=null && server!=null)
+            server.closeport(url);
+            {
+            } 
+			*/
+		} 
+	} 
+    public Handler mHandler=new Handler(){    
+        public void handleMessage(Message msg) { 
+			if(msg.what==0){
+                String str =(String)msg.obj;   
+                //if(url!=null)                videoview.stopPlayback();  
+				
+				videoview.setVideoURI(Uri.parse(str));
+				videoview.start(); 
+				 
+            } 
+			/*
+            if(msg.what==1){
+                if(msg.arg1==0)
+				videoview.setVisibility(View.GONE); 
+                if(msg.arg1==1)
+				videoview.setVisibility(View.VISIBLE); 
+			}
+			*/
+			 
+                            
+        }        
+    };    
+    
+    private void init() {  
+        webView = (WebView) findViewById(R.id.webView);   
+        webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+        webView.loadUrl("file:///android_asset/index.html");   
+        //webView.loadUrl("http://101.201.104.27/m3u8/");  
+        webView.addJavascriptInterface(new JsInteration(), "control");
+        webView.setWebViewClient(new WebViewClient(){  
+            @Override  
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {   
+                view.loadUrl(url);  
+                return true;  
+            }  
+			
+			@Override  
+			public void onPageFinished(WebView view, String url) {  
+				// TODO Auto-generated method stub  x
+				super.onPageFinished(view, url);   
+				//view.loadUrl("javascript:play()");   
+			}  
+			  
+            //WebViewClient帮助WebView去处理一些页面控制和请求通知  
+        });  
+		//webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+        //启用支持Javascript  
+        WebSettings settings = webView.getSettings();  
+        settings.setJavaScriptEnabled(true); 		
+        //WebView加载页面优先使用缓存加载  
+        settings.setCacheMode(WebSettings.LOAD_NO_CACHE);  
+        webView.setWebChromeClient(new WebChromeClient() {  
+            /** 
+             * 显示自定义视图，无此方法视频不能播放 
+             */  
+            @Override  
+            public void onShowCustomView(View view, CustomViewCallback callback) {  
+                super.onShowCustomView(view, callback);  
+            }  
+        });   
+    }  
 }
