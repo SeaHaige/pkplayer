@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<meta charset="UTF-8">  
+		<link rel="stylesheet" type="text/css" href="css/font-awesome.min.css" />
+		<link rel="stylesheet" href="css/ppeasy.css" />  
+		<script type="text/javascript" src="js/ppeasy.js"></script>
+<style> 
+</style>
+ 
+<script>
+
+var f=null;
+{
+	var xhr = new XMLHttpRequest();
+	xhr.onreadystatechange = function () {
+		if (xhr.readyState == 4 && xhr.status == 200) {
+			var serveraddr=xhr.responseText.split("\"")[3];
+			//alert(serveraddr);
+			if(serveraddr)		
+			{		  
+				f=new WebSocket("ws://"+serveraddr+"/");
+				f.onopen=function(t){
+					console.log("connected");
+				};
+				function getamount(t){
+					if(t>100*1024*1024)
+					{
+						t=""+t/(1024*1024*1024);
+						return t.split(".")[0]+"."+t.split(".")[1].substring(0,2)+"G";
+					}
+					t=""+t/(1024*1024);
+					if(t.indexOf(".")>=0)
+					return t.split(".")[0]+"."+t.split(".")[1].substring(0,2)+"M";
+					else return 0;
+				}
+				f.onmessage=function(event){
+					//console.log(t);
+					var t=event.data;
+					if(event.data.substring(0,1)=='S'){
+						document.getElementById("a1").innerHTML=getamount(t.split(",")[1]);
+						document.getElementById("a2").innerHTML=getamount(t.split(",")[2]);
+						document.getElementById("a3").innerHTML=getamount(t.split(",")[3]);
+						document.getElementById("a4").innerHTML=(t.split(",")[4]);
+						document.getElementById("a5").innerHTML=(t.split(",")[5]);
+						document.getElementById("a6").innerHTML=getamount((t.split(",")[6]));
+					}
+				}
+			}
+		}
+	};
+	xhr.open('GET', 'http://127.0.0.1:1960/?Action=statServer');
+	xhr.send(null);
+} 
+
+window.onload=function(){
+	setInterval(function(){
+		if(f!=null)
+			f.send("get");
+	},1000);
+}
+
+function play(url){
+	PPeasyPlayer.play({
+		player:"playerdiv",
+		//adCountDowns:5,
+		//adVideoPath:"a.mp4",
+		videoPath:url
+	});
+}
+ 
+</script>
+<body>
+<br> 
+<div style="height:100px;border:1px solid gray;" onclick="play('http://rbv01.ku6.com/r7x5yu0lBMaVxb3t1lrIqw.mp4')"><span style="float:left;"><img style="width:110px;height:100px" src='http://hz01.newstels.com/vip/images/bg/RoomBg16_m.jpg'/></span>
+<div style="height:60px;font-size:32px;">测试视频</div><div style="color:gray;overflow:hidden;">http://rbv01.ku6.com/r7x5yu0lBMaVxb3t1lrIqw.mp4	</div></div>
+<div style="height:5px;"></div>
+<div style="height:100px;border:1px solid gray;" onclick="play('http://rbv01.ku6.com/wifi/o_1csvqm51uc2j10avujvk7r1tv4akvs')"><span style="float:left;"><img style="width:110px;height:100px" src='http://hz01.newstels.com/vip/images/bg/RoomBg19_m.jpg'/></span>
+<div style="height:60px;font-size:32px;">测试视频2</div><div style="color:gray;overflow:hidden;">http://rbv01.ku6.com/wifi/o_1csvqm51uc2j10avujvk7r1tv4akvs	</div></div>
+<div style="width:100%;height:240px" id=playerdiv>
+
+</div>  	
+<!--
+<input type=button value="refresh" onclick="window.location.reload()"/>
+-->
+<br>
+<span class=propertyblock>下载量(总计) ：</span><span id=a1  class=valueblock></span>B
+<br>
+<span class=propertyblock>缓存量(总计) ：</span><span id=a2  class=valueblock></span>B
+<br>
+<span class=propertyblock>对等传输(总计) ：</span><span id=a3  class=valueblock></span>B
+<br>
+<span class=propertyblock>在线用户数：</span><span id=a4 class=valueblock></span>个 
+<br>
+<span class=propertyblock>在线文件数：</span><span id=a5 class=valueblock></span>个 
+<br>
+<span class=propertyblock>在线文件大小：</span><span id=a6 class=valueblock></span>B 
+			<!--视频控制层--> 
+		<!--</div>-->
+ 
+</body>
+</html>
