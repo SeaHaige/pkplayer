@@ -1,0 +1,49 @@
+<html>
+<script>
+ 
+PPeasy_Config={
+	//server:"ws://ppeasy.p2pdownload.cn:8185/",
+	server:"wss://ppeasy.p2pdownload.cn:8180/",
+	stun1:"stun:stun.freeswitch.org",
+	stun2:"stun:stun.xten.com"
+};
+</script>
+<script type="text/javascript" src="ppeasy.js"></script>
+<script src="flv.js"></script>
+
+<script> 
+var urlstring=null;
+var chromev=window.navigator.userAgent;
+ 
+chromev=parseInt(chromev.split(" Chrome/")[1].split(".")[0]);
+function start(){  
+	urlstring=document.getElementById("url").value;
+    if (flvjs.isSupported()) {
+        var videoElement = document.getElementById('videoElement');
+        var flvPlayer = flvjs.createPlayer({
+            type: 'flv',
+			isLive: 'true',
+			url:urlstring
+        },{  
+			enableStashBuffer: false,
+			stashInitialSize: 128,
+			isLive: true, 
+		}
+		);
+        flvPlayer.attachMediaElement(videoElement);
+        flvPlayer.load();
+        flvPlayer.play();
+    }
+}
+window.onload=function(){
+	if(chromev<66 );
+		
+}; 
+</script>
+<body onclick=''> 
+url:<input id=url style="width:620px" type=text value="https://v-2aec0328.71edge.com:444/liveshow/rbd_hwgpzrz1.flv?ip=221.15.216.19&ssl=1&ran=255" /><input type=button onclick="start();" value=play /><br>
+<video id="videoElement" controls=controls autoplay="autoplay" webkit-playsinline=true playsinline=true x5-playsinline style="width:600px;height:400px;" onclick='start()'></video>
+<div id=log> 
+</div>
+</body>
+</html>
