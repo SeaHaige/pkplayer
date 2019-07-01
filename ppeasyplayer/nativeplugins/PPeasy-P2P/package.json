@@ -1,0 +1,34 @@
+{
+	"name": "P2P",
+	"id": "PPeasy-P2P",
+	"version": "0.1.3",
+	"description": "P2P插件",
+	"_dp_type":"nativeplugin",
+	"_dp_nativeplugin":{
+		"ios": {
+			"plugins": [
+				{
+					"type": "module",
+					"name": "PPeasy-P2P",
+					"class": "DCRichAlertModule"
+				}
+			],
+			"integrateType": "library",
+			"deploymentTarget": "8.0"
+		},
+		"android": {
+			"plugins": [
+				{
+					"type": "module",
+					"name": "PPeasy-P2P",
+					"class": "uni.dcloud.io.uniplugin_richalert.RichAlertWXModule"
+				}
+			],
+			"abis": [  
+                "arm64-v8a|armeabi|armeabi-v7a|x86"  
+            ],  
+			"integrateType": "aar",
+			"minSdkVersion" : 16
+		}
+	}
+}
