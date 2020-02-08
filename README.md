@@ -11,7 +11,6 @@ pkplayer是一个P2P播放器，支持Android、IOS平台。
 - 直播支持HLS/Rtmp/Http-Flv直播协议，具有低延迟、流畅的特点
 - SDK支持Android/IOS/Windows/Linux等平台
 - 添加了uni-app程序的支持
-- 后台管理页面http://p2pdownload.cn
 
 HTML5版本P2P播放器项目地址:  https://github.com/SeaHaige/p2pflv.js
 
