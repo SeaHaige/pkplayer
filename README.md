@@ -18,6 +18,7 @@ pkplayer是一个P2P播放器，支持Android、IOS平台。
   1)在网页中可以使用Iframe方式进行调用p2p播放器，  
   https://p2pdownload.cn/?nogui=2&url=
   在url=后面输入真实https://*.m3u8形式的播放地址
+  
   注：如果需要启动自动播放方式，需要添加iframe属性 allow="autoplay"
   
   2)在苹果CMS10.0中调用p2p播放器
