@@ -14,6 +14,7 @@ pkplayer是一个P2P播放器，支持Android、IOS平台。
 - 支持web网页调用，底层使用webrtc传输，无需安装任何插件
 
 网页调用方式
+
   1)在网页中可以使用Iframe方式进行调用p2p播放器，  
   https://p2pdownload.cn/?nogui=2&url=
   在url=后面输入真实https://*.m3u8形式的播放地址
