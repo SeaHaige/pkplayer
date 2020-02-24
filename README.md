@@ -30,7 +30,7 @@ pkplayer是一个P2P播放器，支持Android、IOS平台。
   
    在"src="后添加"https://p2pdownload.cn/?nogui=2&url=" ,iframe添加属性allow="autoplay"
 	
-  注：ppeasy免费版提供每日p2p流量50G，超出限制后，播放器将使用普通播放器功能正常播放，如需使用更多流量登录 https://p2pdownload.cn 进行注册使用
+  注：目前web调用仅支持m3u8格式的媒体文件，ppeasy免费版提供每日p2p流量50G，超出限制后，播放器将使用普通播放器功能正常播放，如需使用更多流量登录 https://p2pdownload.cn 进行注册使用
   
   QQ技术交流群: 466907566
 
